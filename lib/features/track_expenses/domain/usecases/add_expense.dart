@@ -9,7 +9,6 @@ class AddExpense {
   AddExpense(this.repository);
 
   Future<List<ExpensesItem>> call(ExpensesItem newExpense) async {
-    print('jsdnfksdnfk');
     return await repository.addExpense(newExpense);
   }
 }

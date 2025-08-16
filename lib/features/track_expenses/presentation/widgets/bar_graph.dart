@@ -1,6 +1,7 @@
-import 'package:expenses_tracker/features/track_expenses/domain/entities/bar_data.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
+import '../../domain/entities/bar_data.dart';
 
 class BarGraph extends StatelessWidget {
   final double? maxYy;

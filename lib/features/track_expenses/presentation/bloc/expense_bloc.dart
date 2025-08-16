@@ -42,7 +42,6 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       // emit(ExpensesLoading());
       var newExpense = event.newExpense;
       var updatedExpensesList = await addExpense(newExpense);
-      print('Expense added successfully, updated list: $updatedExpensesList');
       emit(ExpensesAdded(updatedExpensesList));
     } catch (e) {
       emit(const ExpenseError('Failed to add the expense'));

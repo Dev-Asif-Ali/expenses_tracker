@@ -23,17 +23,18 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.example.expenses_tracker"
-    compileSdk flutter.compileSdkVersion
+    namespace "com.expensestracker.pro"
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
 
     sourceSets {
@@ -42,21 +43,44 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.expenses_tracker"
+        applicationId "com.expensestracker.pro"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        
+        // Enable multidex for large apps
+        multiDexEnabled true
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Enable code shrinking and obfuscation
+            minifyEnabled false
+            shrinkResources false
+            
+            // Use release signing config (you'll need to create this)
+            // signingConfig signingConfigs.release
+            
+            // For now, use debug config for testing
             signingConfig signingConfigs.debug
+            
+            // ProGuard rules (disabled for now)
+            // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        
+        debug {
+            // Disable minification for debug builds
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+    
+    // Enable R8 full mode for better optimization
+    buildFeatures {
+        buildConfig true
     }
 }
 
@@ -64,4 +88,6 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+}

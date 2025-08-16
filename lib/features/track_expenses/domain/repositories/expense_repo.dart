@@ -3,5 +3,6 @@ import 'package:expenses_tracker/features/track_expenses/domain/entities/expense
 abstract class ExpenseRepository {
   Future<List<ExpensesItem>> getExpenses();
   Future<List<ExpensesItem>> addExpense(ExpensesItem expense);
-    Future<void> deleteExpense(ExpensesItem expense);
+  Future<void> deleteExpense(ExpensesItem expense);
+  Future<void> updateExpense(ExpensesItem expense);
 }

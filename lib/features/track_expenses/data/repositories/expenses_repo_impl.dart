@@ -27,16 +27,24 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
   @override
   Future<List<ExpensesItem>> addExpense(ExpensesItem newExpense) async {
-    db.saveData(overallExpensesList);
     overallExpensesList.add(newExpense);
+    db.saveData(overallExpensesList);
     return overallExpensesList;
   }
 
   @override
   Future<void> deleteExpense(ExpensesItem expense) async {
+    overallExpensesList.removeWhere((e) => e.id == expense.id);
     db.saveData(overallExpensesList);
-    overallExpensesList.remove(expense);
-    
+  }
+
+  @override
+  Future<void> updateExpense(ExpensesItem expense) async {
+    final index = overallExpensesList.indexWhere((e) => e.id == expense.id);
+    if (index != -1) {
+      overallExpensesList[index] = expense;
+      db.saveData(overallExpensesList);
+    }
   }
 
   String getDayName(DateTime dateTime) {
@@ -71,7 +79,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     Map<String, double> dailyExpensesSummary = {};
     for (var expense in overallExpensesList) {
       String date = convertDateTimeToString(expense.dateTime);
-      double amount = double.parse(expense.amount);
+      double amount = expense.amount; // Now amount is already a double
 
       if (dailyExpensesSummary.containsKey(date)) {
         dailyExpensesSummary[date] = dailyExpensesSummary[date]! + amount;
@@ -81,5 +89,45 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
     log(dailyExpensesSummary.toString());
     return dailyExpensesSummary;
+  }
+
+  // New methods for enhanced functionality
+  List<ExpensesItem> getExpensesByCategory(ExpenseCategory category) {
+    return overallExpensesList.where((expense) => expense.category == category).toList();
+  }
+
+  // Helper method to convert DateTime to string
+  String convertDateTimeToString(DateTime dateTime) {
+    String year = dateTime.year.toString();
+    String month = dateTime.month.toString();
+    if (month.length == 1) {
+      month = '0' + month;
+    }
+    String day = dateTime.day.toString();
+    if (day.length == 1) {
+      day = '0' + day;
+    }
+    String yyyymmdd = year + month + day;
+    return yyyymmdd;
+  }
+
+  List<ExpensesItem> getExpensesByDateRange(DateTime startDate, DateTime endDate) {
+    return overallExpensesList.where((expense) => 
+      expense.dateTime.isAfter(startDate) && expense.dateTime.isBefore(endDate)
+    ).toList();
+  }
+
+  List<ExpensesItem> getRecurringExpenses() {
+    return overallExpensesList.where((expense) => expense.isRecurring).toList();
+  }
+
+  double getTotalExpenses() {
+    return overallExpensesList.fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  double getTotalExpensesByCategory(ExpenseCategory category) {
+    return overallExpensesList
+        .where((expense) => expense.category == category)
+        .fold(0.0, (sum, expense) => sum + expense.amount);
   }
 }

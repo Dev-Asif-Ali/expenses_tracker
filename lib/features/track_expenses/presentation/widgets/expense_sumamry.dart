@@ -1,13 +1,13 @@
 import 'dart:math';
 
-import 'package:expenses_tracker/core/datetime/date_time.dart';
-import 'package:expenses_tracker/features/track_expenses/presentation/bloc/expense_bloc.dart';
-import 'package:expenses_tracker/features/track_expenses/presentation/bloc/expense_state.dart';
-import 'package:expenses_tracker/features/track_expenses/presentation/widgets/bar_graph.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/datetime/date_time.dart';
 import '../../data/repositories/expenses_repo_impl.dart';
+import '../bloc/expense_bloc.dart';
+import '../bloc/expense_state.dart';
+import 'bar_graph.dart';
 
 class ExpenseSummary extends StatelessWidget {
   final ExpenseRepositoryImpl repository;

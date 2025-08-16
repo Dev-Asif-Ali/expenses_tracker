@@ -5,14 +5,9 @@ class HiveDataBase {
   final _myBox = Hive.box("expenses_database");
 
   void saveData(List<ExpensesItem> allExpense) {
-    List<List<dynamic>> allExpenseFormatted = [];
+    List<Map<String, dynamic>> allExpenseFormatted = [];
     for (var expense in allExpense) {
-      List<dynamic> expenseFormatted = [
-        expense.name,
-        expense.amount,
-        expense.dateTime,
-      ];
-      allExpenseFormatted.add(expenseFormatted);
+      allExpenseFormatted.add(expense.toMap());
     }
     _myBox.put("All_Expenses", allExpenseFormatted);
   }
@@ -23,18 +18,59 @@ class HiveDataBase {
     List<ExpensesItem> allExpense = [];
 
     for (int i = 0; i < savedExpense.length; i++) {
-      String name = savedExpense[i][0];
-      String amount = savedExpense[i][1];
-      DateTime dateTime = savedExpense[i][2];
-
-      ExpensesItem expense =
-          ExpensesItem(
-            name: name, 
-            amount: amount, 
-            dateTime: dateTime,
+      try {
+        if (savedExpense[i] is Map<String, dynamic>) {
+          // New format with enhanced structure
+          allExpense.add(ExpensesItem.fromMap(savedExpense[i]));
+        } else if (savedExpense[i] is List) {
+          // Legacy format - convert to new format
+          List<dynamic> legacyExpense = savedExpense[i];
+          if (legacyExpense.length >= 3) {
+            final legacyItem = ExpensesItem(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              name: legacyExpense[0] ?? '',
+              amount: (legacyExpense[1] is String) 
+                  ? double.tryParse(legacyExpense[1]) ?? 0.0 
+                  : (legacyExpense[1] is num) 
+                      ? (legacyExpense[1] as num).toDouble() 
+                      : 0.0,
+              dateTime: legacyExpense[2] is DateTime 
+                  ? legacyExpense[2] 
+                  : DateTime.now(),
             );
-            allExpense.add(expense);
+            allExpense.add(legacyItem);
+          }
+        }
+      } catch (e) {
+        // Log error silently in production
+        continue;
+      }
     }
     return allExpense;
+  }
+
+  void saveExpense(ExpensesItem expense) {
+    List<ExpensesItem> currentExpenses = readData();
+    currentExpenses.add(expense);
+    saveData(currentExpenses);
+  }
+
+  void updateExpense(ExpensesItem expense) {
+    List<ExpensesItem> currentExpenses = readData();
+    final index = currentExpenses.indexWhere((e) => e.id == expense.id);
+    if (index != -1) {
+      currentExpenses[index] = expense;
+      saveData(currentExpenses);
+    }
+  }
+
+  void deleteExpense(String expenseId) {
+    List<ExpensesItem> currentExpenses = readData();
+    currentExpenses.removeWhere((e) => e.id == expenseId);
+    saveData(currentExpenses);
+  }
+
+  void clearAllData() {
+    _myBox.clear();
   }
 }
