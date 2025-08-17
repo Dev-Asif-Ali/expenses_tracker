@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:expenses_tracker/features/track_expenses/presentation/pages/home_page.dart';
 import 'package:expenses_tracker/features/track_expenses/presentation/widgets/analytics_dashboard.dart';
 import 'package:expenses_tracker/features/profile/presentation/pages/profile_page.dart';
+import 'package:expenses_tracker/features/budget/presentation/pages/budgets_page.dart';
 import 'package:expenses_tracker/features/track_expenses/domain/entities/expenses_item.dart';
 import 'package:expenses_tracker/core/services/user_profile_service.dart';
 
@@ -21,6 +22,8 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   late PageController _pageController;
   late List<ExpensesItem> _allExpenses;
+  late ValueNotifier<List<ExpensesItem>> _expensesNotifier;
+  int _expensesVersion = 0;
 
   @override
   void initState() {
@@ -28,6 +31,7 @@ class _MainNavigationState extends State<MainNavigation> {
     _pageController = PageController(initialPage: _currentIndex);
     // Use passed expenses if available, otherwise start with empty list
     _allExpenses = widget.expenses ?? [];
+    _expensesNotifier = ValueNotifier<List<ExpensesItem>>(List.from(_allExpenses));
   }
 
   // Method to add expense from any tab
@@ -35,6 +39,8 @@ class _MainNavigationState extends State<MainNavigation> {
     setState(() {
       _allExpenses.add(expense);
     });
+    _expensesNotifier.value = List.from(_allExpenses);
+    _expensesVersion++;
     
     // Show success message
     if (mounted) {
@@ -56,6 +62,8 @@ class _MainNavigationState extends State<MainNavigation> {
         _allExpenses[index] = expense;
       }
     });
+    _expensesNotifier.value = List.from(_allExpenses);
+    _expensesVersion++;
     
     // Show success message
     if (mounted) {
@@ -74,6 +82,8 @@ class _MainNavigationState extends State<MainNavigation> {
     setState(() {
       _allExpenses.removeWhere((e) => e.id == expense.id);
     });
+    _expensesNotifier.value = List.from(_allExpenses);
+    _expensesVersion++;
     
     // Show success message
     if (mounted) {
@@ -253,42 +263,11 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Widget _buildBudgetsPage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.account_balance_wallet,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Budget Management',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming Soon!',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade500,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _showBudgetComingSoon,
-            icon: const Icon(Icons.add),
-            label: const Text('Create Budget'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-          ),
-        ],
-      ),
+    return ValueListenableBuilder<List<ExpensesItem>>(
+      valueListenable: _expensesNotifier,
+      builder: (context, expenses, _) {
+        return BudgetsPage(key: ValueKey(_expensesVersion), expenses: expenses);
+      },
     );
   }
 

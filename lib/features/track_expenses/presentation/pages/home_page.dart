@@ -411,12 +411,26 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddExpenseDialog,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Expense'),
+      floatingActionButton: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = MediaQuery.of(context).size.width;
+          final isCompact = width < 380;
+          if (isCompact) {
+            return FloatingActionButton(
+              onPressed: _showAddExpenseDialog,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add, size: 22),
+            );
+          }
+          return FloatingActionButton.extended(
+            onPressed: _showAddExpenseDialog,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.add, size: 22),
+            label: const Text('Add Expense'),
+          );
+        },
       ),
     );
   }
@@ -450,7 +464,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 8),
                                      Text(
                      profile?.formatAmount(totalSpent) ?? '\$${totalSpent.toStringAsFixed(2)}',
-                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                        fontWeight: FontWeight.bold,
                        color: Theme.of(context).colorScheme.primary,
                      ),

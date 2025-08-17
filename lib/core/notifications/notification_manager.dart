@@ -1,5 +1,6 @@
 import 'package:expenses_tracker/core/notifications/notification_service.dart';
 import 'package:expenses_tracker/features/track_expenses/domain/entities/expenses_item.dart';
+import 'package:expenses_tracker/core/services/user_profile_service.dart';
 
 class NotificationManager {
   static final NotificationManager _instance = NotificationManager._internal();
@@ -7,6 +8,13 @@ class NotificationManager {
   NotificationManager._internal();
 
   final NotificationService _notificationService = NotificationService();
+  final UserProfileService _userProfileService = UserProfileService();
+
+  String _fmt(double amount) {
+    final profile = _userProfileService.currentProfile;
+    if (profile != null) return profile.formatAmount(amount);
+    return '\$' + amount.toStringAsFixed(2);
+  }
 
   // Initialize notifications
   Future<void> initialize() async {
@@ -18,7 +26,7 @@ class NotificationManager {
     // Show confirmation notification
     await _notificationService.showNotification(
       title: '✅ Expense Added',
-      body: '${expense.name} - \$${expense.amount.toStringAsFixed(2)} has been recorded.',
+      body: '${expense.name} - ' + _fmt(expense.amount) + ' has been recorded.',
     );
 
     // If it's a recurring expense, schedule the next reminder
@@ -34,7 +42,7 @@ class NotificationManager {
   Future<void> onExpenseUpdated(ExpensesItem expense) async {
     await _notificationService.showNotification(
       title: '✏️ Expense Updated',
-      body: '${expense.name} has been updated to \$${expense.amount.toStringAsFixed(2)}.',
+      body: '${expense.name} has been updated to ' + _fmt(expense.amount) + '.',
     );
 
     // Re-schedule recurring expense reminder if needed
@@ -64,7 +72,7 @@ class NotificationManager {
     
     await _notificationService.scheduleNotification(
       title: '🔄 Recurring Expense Reminder',
-      body: 'Don\'t forget to record your ${expense.name} expense (\$${expense.amount.toStringAsFixed(2)}) tomorrow.',
+      body: 'Don\'t forget to record your ${expense.name} expense (' + _fmt(expense.amount) + ') tomorrow.',
       scheduledDate: reminderTime,
       id: expense.hashCode,
     );
@@ -168,19 +176,19 @@ class NotificationManager {
     
     if (percentage >= 100) {
       title = '🚨 Monthly Budget Exceeded!';
-      body = 'You\'ve spent \$${totalSpent.toStringAsFixed(2)} this month, exceeding your budget by \$${remaining.abs().toStringAsFixed(2)}.';
+      body = 'You\'ve spent ' + _fmt(totalSpent) + ' this month, exceeding your budget by ' + _fmt(remaining.abs()) + '.';
     } else if (percentage >= 80) {
       title = '⚠️ Monthly Budget Alert';
-      body = 'You\'ve spent \$${totalSpent.toStringAsFixed(2)} this month (${percentage.toStringAsFixed(1)}% of budget). \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ' + _fmt(totalSpent) + ' this month (' + percentage.toStringAsFixed(1) + '% of budget). ' + _fmt(remaining) + ' remaining.';
     } else {
       title = '📊 Monthly Summary';
-      body = 'You\'ve spent \$${totalSpent.toStringAsFixed(2)} this month (${percentage.toStringAsFixed(1)}% of budget). \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ' + _fmt(totalSpent) + ' this month (' + percentage.toStringAsFixed(1) + '% of budget). ' + _fmt(remaining) + ' remaining.';
     }
 
     // Add top spending category
     if (categoryBreakdown.isNotEmpty) {
       final topCategory = categoryBreakdown.entries.reduce((a, b) => a.value > b.value ? a : b);
-      body += '\n\nTop spending category: ${topCategory.key} (\$${topCategory.value.toStringAsFixed(2)})';
+      body += '\n\nTop spending category: ${topCategory.key} (' + _fmt(topCategory.value) + ')';
     }
 
     await _notificationService.showNotification(title: title, body: body);

@@ -2,6 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:expenses_tracker/features/track_expenses/domain/entities/expenses_item.dart';
+import 'package:expenses_tracker/core/services/user_profile_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -9,6 +10,7 @@ class NotificationService {
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final UserProfileService _userProfileService = UserProfileService();
 
   Future<void> initialize() async {
     // Initialize timezone
@@ -35,6 +37,14 @@ class NotificationService {
 
     // Request permissions
     await _requestPermissions();
+  }
+
+  String _formatAmount(double amount) {
+    final profile = _userProfileService.currentProfile;
+    if (profile != null) {
+      return profile.formatAmount(amount);
+    }
+    return '\$' + amount.toStringAsFixed(2);
   }
 
   Future<void> _requestPermissions() async {
@@ -223,13 +233,13 @@ class NotificationService {
 
     if (percentage >= 90) {
       title = '🚨 Budget Warning!';
-      body = 'You\'ve spent ${percentage.toStringAsFixed(1)}% of your $budgetName budget. Only \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ${percentage.toStringAsFixed(1)}% of your $budgetName budget. Only ' + _formatAmount(remaining) + ' remaining.';
     } else if (percentage >= 75) {
       title = '⚠️ Budget Alert';
-      body = 'You\'ve spent ${percentage.toStringAsFixed(1)}% of your $budgetName budget. \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ${percentage.toStringAsFixed(1)}% of your $budgetName budget. ' + _formatAmount(remaining) + ' remaining.';
     } else {
       title = '💰 Budget Update';
-      body = 'You\'ve spent ${percentage.toStringAsFixed(1)}% of your $budgetName budget. \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ${percentage.toStringAsFixed(1)}% of your $budgetName budget. ' + _formatAmount(remaining) + ' remaining.';
     }
 
     await showNotification(title: title, body: body);
@@ -259,7 +269,7 @@ class NotificationService {
     required ExpensesItem expense,
     DateTime? scheduledTime,
   }) async {
-    final message = 'Don\'t forget to record your recurring ${expense.name} expense (\$${expense.amount.toStringAsFixed(2)})';
+    final message = 'Don\'t forget to record your recurring ${expense.name} expense (' + _formatAmount(expense.amount) + ')';
     
     if (scheduledTime != null) {
       await scheduleNotification(
@@ -288,18 +298,18 @@ class NotificationService {
     
     if (percentage >= 100) {
       title = '🚨 Weekly Budget Exceeded!';
-      body = 'You\'ve spent \$${totalSpent.toStringAsFixed(2)} this week, exceeding your budget by \$${remaining.abs().toStringAsFixed(2)}.';
+      body = 'You\'ve spent ' + _formatAmount(totalSpent) + ' this week, exceeding your budget by ' + _formatAmount(remaining.abs()) + '.';
     } else if (percentage >= 80) {
       title = '⚠️ Weekly Budget Alert';
-      body = 'You\'ve spent \$${totalSpent.toStringAsFixed(2)} this week (${percentage.toStringAsFixed(1)}% of budget). \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ' + _formatAmount(totalSpent) + ' this week (' + percentage.toStringAsFixed(1) + '% of budget). ' + _formatAmount(remaining) + ' remaining.';
     } else {
       title = '📊 Weekly Summary';
-      body = 'You\'ve spent \$${totalSpent.toStringAsFixed(2)} this week (${percentage.toStringAsFixed(1)}% of budget). \$${remaining.toStringAsFixed(2)} remaining.';
+      body = 'You\'ve spent ' + _formatAmount(totalSpent) + ' this week (' + percentage.toStringAsFixed(1) + '% of budget). ' + _formatAmount(remaining) + ' remaining.';
     }
 
     // Add top expense info if available
     if (topExpenses.isNotEmpty) {
-      body += '\n\nTop expense: ${topExpenses.first.name} (\$${topExpenses.first.amount.toStringAsFixed(2)})';
+      body += '\n\nTop expense: ${topExpenses.first.name} (' + _formatAmount(topExpenses.first.amount) + ')';
     }
 
     await showNotification(title: title, body: body);
@@ -316,12 +326,12 @@ class NotificationService {
     if (percentage >= 100) {
       await showNotification(
         title: '🎉 Goal Achieved!',
-        body: 'Congratulations! You\'ve reached your $goalName goal of \$${targetAmount.toStringAsFixed(2)}!',
+        body: 'Congratulations! You\'ve reached your $goalName goal of ' + _formatAmount(targetAmount) + '!',
       );
     } else if (percentage >= 75) {
       await showNotification(
         title: '🎯 Goal Progress',
-        body: 'Great progress! You\'re ${percentage.toStringAsFixed(1)}% towards your $goalName goal. \$${(targetAmount - currentAmount).toStringAsFixed(2)} to go!',
+        body: 'Great progress! You\'re ' + percentage.toStringAsFixed(1) + '% towards your $goalName goal. ' + _formatAmount(targetAmount - currentAmount) + ' to go!',
       );
     }
   }

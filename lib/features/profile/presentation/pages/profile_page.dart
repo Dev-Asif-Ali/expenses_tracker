@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:expenses_tracker/core/models/user_profile.dart';
 import 'package:expenses_tracker/core/services/user_profile_service.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -138,6 +140,21 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _shareApp() async {
+    const text = 'I\'m using Expenses Tracker Pro to manage my budget. Check it out!';
+    await Share.share(text);
+  }
+
+  Future<void> _rateApp() async {
+    final inAppReview = InAppReview.instance;
+    if (await inAppReview.isAvailable()) {
+      await inAppReview.requestReview();
+    } else {
+      // Fallback: open store listing if available
+      await inAppReview.openStoreListing(appStoreId: null, microsoftStoreId: null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileService = UserProfileService();
@@ -145,25 +162,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (profile == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Profile',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
-          elevation: 8,
-          shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-          centerTitle: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
-          ),
-        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -195,7 +193,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -313,17 +310,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () {
-                                // TODO: Navigate to notifications
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Notifications page coming soon!'),
-                                    backgroundColor: Colors.blue,
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.notifications),
-                              label: const Text('Notifications'),
+                              onPressed: _shareApp,
+                              icon: const Icon(Icons.share),
+                              label: const Text('Share App'),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
@@ -335,17 +324,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () {
-                                // TODO: Navigate to settings
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Settings page coming soon!'),
-                                    backgroundColor: Colors.blue,
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.settings),
-                              label: const Text('Settings'),
+                              onPressed: _rateApp,
+                              icon: const Icon(Icons.star_rate),
+                              label: const Text('Rate Us'),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
